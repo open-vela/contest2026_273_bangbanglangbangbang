@@ -1,11 +1,12 @@
 #
-# Contest 2026 team 000 board placeholder
+# STM32N647-EVB Board - Contest 2026 Team 273 bangbanglangbangbang
+# New hardware platform adaptation: STM32N647 on Cortex-M55
 #
 
-if ARCH_BOARD_CONTEST2026_000_BOARD
+if ARCH_BOARD_CONTEST2026_273_BOARD
 
-config ARCH_BOARD_CONTEST2026_000_BOARD_TAG
+config ARCH_BOARD_CONTEST2026_273_BOARD_TAG
 	string "Board tag"
-	default "contest2026_000_board"
+	default "stm32n647-evb"
 
 endif
