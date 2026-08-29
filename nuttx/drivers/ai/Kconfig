@@ -1,0 +1,91 @@
+#
+# drivers/ai/Kconfig
+#
+
+menuconfig AI
+	bool "AI/TinyML Support"
+	default n
+	---help---
+		Enable AI and TinyML support for embedded machine learning
+		inference on Cortex-M processors with CMSIS-NN acceleration.
+
+if AI
+
+config AI_TINYML
+	bool "TinyML Inference Engine"
+	default y
+	---help---
+		Enable the TinyML inference engine for running quantized
+		neural network models on microcontrollers.
+
+config AI_CMSIS_NN
+	bool "CMSIS-NN Backend"
+	default y
+	---help---
+		Use ARM CMSIS-NN as the backend for neural network operations.
+		This provides optimized implementations for Cortex-M processors.
+
+config AI_CMSIS_NN_HELUM
+	bool "Enable Helium (MVE) Acceleration"
+	default y if ARCH_CHIP_STM32N6
+	depends on AI_CMSIS_NN
+	---help---
+		Enable ARM Helium M-Profile Vector Extension (MVE) acceleration
+		for CMSIS-NN operations. This provides up to 4x speedup on
+		Cortex-M55 processors.
+
+config AI_IMG_CLASSIFIER
+	bool "Image Classification Example"
+	default y
+	depends on AI_TINYML
+	depends on VIDEO_V4L2
+	---help---
+		Enable the image classification example that uses the camera
+		to capture images and classify them using a TinyML model.
+
+config AI_MODEL_ARENA_SIZE
+	int "Model Arena Size (bytes)"
+	default 65536
+	---help---
+		Maximum memory arena size for model inference. This determines
+		the maximum model size that can be loaded.
+
+config AI_INPUT_WIDTH
+	int "Input Image Width"
+	default 96
+	depends on AI_IMG_CLASSIFIER
+	---help---
+		Width of the input image for classification.
+
+config AI_INPUT_HEIGHT
+	int "Input Image Height"
+	default 96
+	depends on AI_IMG_CLASSIFIER
+	---help---
+		Height of the input image for classification.
+
+config AI_INPUT_CHANNELS
+	int "Input Image Channels"
+	default 3
+	depends on AI_IMG_CLASSIFIER
+	---help---
+		Number of channels in the input image (3 for RGB).
+
+config AI_NUM_CLASSES
+	int "Number of Classification Classes"
+	default 10
+	depends on AI_IMG_CLASSIFIER
+	---help---
+		Number of output classes for the classification model.
+
+config AI_AGENT
+	bool "AI Agent Bridge"
+	default y
+	depends on AI_TINYML
+	---help---
+		Enable the AI Agent bridge that connects TinyML inference
+		with camera, printer, and LCD display peripherals. This
+		allows the AI Agent to coordinate TinyML "cerebellum" with
+		cloud LLM "brain".
+
+endif # AI
