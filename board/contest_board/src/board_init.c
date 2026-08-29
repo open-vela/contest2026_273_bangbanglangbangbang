@@ -24,9 +24,26 @@
 
 #include <nuttx/config.h>
 #include <nuttx/board.h>
+#include <nuttx/spi/spi.h>
+#include <nuttx/mtd/mtd.h>
+#include <nuttx/spi/qspi.h>
+#include <syslog.h>
 #include <arch/board/board.h>
 
 #include "stm32_spi.h"
+#include "stm32_xspi.h"
+
+/* MTD driver for MX25UM25645G */
+
+FAR struct mtd_dev_s *mx25um25645g_initialize(FAR struct qspi_dev_s *qspi);
+
+#ifdef CONFIG_THERMAL_PRINTER
+#  include <nuttx/misc/thermal_printer.h>
+#endif
+
+#ifdef CONFIG_STM32N6_DCMIPP
+extern int board_dcmipp_initialize(void);
+#endif
 
 /****************************************************************************
  * Public Functions
@@ -60,6 +77,60 @@ void board_initialize(void)
 
 #ifdef CONFIG_STM32N6_SPI3
   stm32_spi3initialize();
+#endif
+
+  /* Register thermal printer on SPI1 */
+
+#ifdef CONFIG_THERMAL_PRINTER
+  {
+    FAR struct spi_dev_s *spi = stm32_spibus_initialize(1);
+    if (spi != NULL)
+      {
+        thermal_printer_register(spi);
+      }
+  }
+#endif
+
+  /* Initialize XSPI2 NOR Flash */
+
+#ifdef CONFIG_STM32N6_XSPI2
+  {
+    FAR struct qspi_dev_s *xspi;
+    FAR struct mtd_dev_s *mtd;
+
+    xspi = stm32n6_xspi_initialize(2);
+    if (xspi != NULL)
+      {
+        mtd = mx25um25645g_initialize(xspi);
+        if (mtd != NULL)
+          {
+            /* Register the MTD device */
+
+            syslog(LOG_NOTICE, "XSPI2 NOR Flash: MTD initialized\n");
+          }
+        else
+          {
+            syslog(LOG_ERR, "ERROR: Failed to initialize MTD\n");
+          }
+      }
+    else
+      {
+        syslog(LOG_ERR, "ERROR: Failed to initialize XSPI2\n");
+      }
+  }
+#endif
+
+#ifdef CONFIG_STM32N6_DCMIPP
+  /* Initialize DCMIPP camera interface and sensors */
+
+  board_dcmipp_initialize();
+#endif
+
+  /* Initialize AI/TinyML system */
+
+#ifdef CONFIG_AI
+  extern int stm32_ai_init(void);
+  stm32_ai_init();
 #endif
 
   /* Initialize other peripherals as needed */

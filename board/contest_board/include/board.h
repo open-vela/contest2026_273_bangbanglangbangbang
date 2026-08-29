@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
+#include "hardware/stm32_gpio.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -48,10 +49,21 @@
 
 #define STM32N6_HCLK_FREQUENCY  200000000UL
 
-/* UART configuration */
+/* UART configuration
+ *
+ * USART1: APB2, TX=PA9, RX=PA10
+ * USART2: APB1, TX=PA2, RX=PA3
+ * USART3: APB1, TX=PB10, RX=PB11
+ */
 
 #define STM32N6_USART1_BASE     0x40011000
 #define STM32N6_USART1_IRQ      37
+
+#define STM32N6_USART2_BASE     0x40004400
+#define STM32N6_USART2_IRQ      38
+
+#define STM32N6_USART3_BASE     0x40004800
+#define STM32N6_USART3_IRQ      39
 
 /* I2C pin configuration
  *
@@ -121,17 +133,61 @@
 #define SPI3_CS_PORT    GPIO_PORTA
 #define SPI3_CS_PIN     15
 
-/* LTDC configuration - for STM32N6570-DK with DSI LCD */
+/* LTDC configuration - ATK-MD0700R-800480 RGBLCD panel (ID=0x7084)
+ * Reference: rgblcd.c:128-151
+ */
 
 #ifdef CONFIG_STM32N6_LTDC
 #  define BOARD_LTDC_WIDTH          800
 #  define BOARD_LTDC_HEIGHT         480
-#  define BOARD_LTDC_HSYNC          4
-#  define BOARD_LTDC_VSYNC          4
-#  define BOARD_LTDC_HBP            8
-#  define BOARD_LTDC_VBP            8
-#  define BOARD_LTDC_HFP            8
-#  define BOARD_LTDC_VFP            8
+#  define BOARD_LTDC_HSYNC          1
+#  define BOARD_LTDC_VSYNC          1
+#  define BOARD_LTDC_HBP            46
+#  define BOARD_LTDC_VBP            23
+#  define BOARD_LTDC_HFP            210
+#  define BOARD_LTDC_VFP            22
+#  define BOARD_LTDC_PIXEL_CLOCK    33333333  /* 33.333 MHz */
 #endif
+
+/* XSPI2 configuration for MX25UM25645G NOR Flash
+ *
+ * XSPI2 uses the IO Manager (XSPIM) port 2. The pins are connected
+ * via the XSPIM to the external Octal SPI NOR Flash.
+ *
+ * Typical pin assignments for STM32N647-EVB (Port G, AF9):
+ *   PG6  - XSPI2_CLK  (Clock)
+ *   PG7  - XSPI2_NCS  (Chip Select)
+ *   PG5  - XSPI2_DQS  (Data Strobe)
+ *   PG0  - XSPI2_D0
+ *   PG1  - XSPI2_D1
+ *   PG2  - XSPI2_D2
+ *   PG3  - XSPI2_D3
+ *   PG4  - XSPI2_D4
+ *   PG8  - XSPI2_D5
+ *   PG9  - XSPI2_D6
+ *   PG10 - XSPI2_D7
+ */
+
+#ifdef CONFIG_STM32N6_XSPI2
+
+/* GPIO alternate function for XSPI2 via XSPIM Port 2 = AF9 */
+
+/* XSPI2 Alternate Function (AF9 for XSPI2 on Port G) - already in hardware/stm32_gpio.h */
+
+/* XSPI2 pin definitions (pinset encoding: port[2:0] | pin[6:3] | af[10:7]) */
+
+#define GPIO_XSPI2_CLK       (GPIO_PORTG | (GPIO_PIN6  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_NCS       (GPIO_PORTG | (GPIO_PIN7  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_DQS       (GPIO_PORTG | (GPIO_PIN5  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D0        (GPIO_PORTG | (GPIO_PIN0  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D1        (GPIO_PORTG | (GPIO_PIN1  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D2        (GPIO_PORTG | (GPIO_PIN2  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D3        (GPIO_PORTG | (GPIO_PIN3  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D4        (GPIO_PORTG | (GPIO_PIN4  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D5        (GPIO_PORTG | (GPIO_PIN8  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D6        (GPIO_PORTG | (GPIO_PIN9  << 3) | GPIO_AF9_XSPI2)
+#define GPIO_XSPI2_D7        (GPIO_PORTG | (GPIO_PIN10 << 3) | GPIO_AF9_XSPI2)
+
+#endif /* CONFIG_STM32N6_XSPI2 */
 
 #endif /* __BOARDS_ARM_STM32N6_STM32N647_EVB_INCLUDE_BOARD_H */
