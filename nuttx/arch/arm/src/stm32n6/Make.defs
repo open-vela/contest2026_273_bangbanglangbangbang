@@ -1,0 +1,79 @@
+#
+# STM32N6 Make.defs
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Common ARMv8-M files (includes common/ and arm_m/)
+
+include armv8-m/Make.defs
+VPATH += armv8-m
+
+# The start-up, "head", file.
+
+HEAD_ASRC = arm_head.S
+
+# STM32N6 chip-specific sources
+
+CHIP_CSRCS += stm32_start.c
+CHIP_CSRCS += stm32_clockconfig.c
+CHIP_CSRCS += stm32_gpio.c
+CHIP_CSRCS += stm32_uart.c
+CHIP_CSRCS += stm32_lowputc.c
+CHIP_CSRCS += stm32_irq.c
+CHIP_CSRCS += stm32_timer.c
+CHIP_CSRCS += stm32_serial.c
+
+ifeq ($(CONFIG_STM32N6_I2C1),y)
+CHIP_CSRCS += stm32_i2c.c
+else ifeq ($(CONFIG_STM32N6_I2C2),y)
+CHIP_CSRCS += stm32_i2c.c
+else ifeq ($(CONFIG_STM32N6_I2C3),y)
+CHIP_CSRCS += stm32_i2c.c
+else ifeq ($(CONFIG_STM32N6_I2C4),y)
+CHIP_CSRCS += stm32_i2c.c
+endif
+
+ifeq ($(CONFIG_STM32N6_SPI1),y)
+CHIP_CSRCS += stm32_spi.c
+else ifeq ($(CONFIG_STM32N6_SPI2),y)
+CHIP_CSRCS += stm32_spi.c
+else ifeq ($(CONFIG_STM32N6_SPI3),y)
+CHIP_CSRCS += stm32_spi.c
+endif
+
+ifeq ($(CONFIG_STM32N6_LTDC),y)
+CHIP_CSRCS += stm32_ltdc.c
+endif
+
+ifeq ($(CONFIG_STM32N6_XSPI2),y)
+CHIP_CSRCS += stm32_xspi.c
+endif
+
+ifeq ($(CONFIG_STM32N6_DCMIPP),y)
+CHIP_CSRCS += stm32_dcmipp.c
+CHIP_CSRCS += stm32_dcmipp_imgdata.c
+endif
+
+ifeq ($(CONFIG_ARCH_CHIP_STM32N647),y)
+CHIPDEF = -DSTM32N647
+endif
+
+ARCHDEFINES += $(CHIPDEF)
+ARCHINCLUDES += -I$(TOPDIR)/arch/arm/src/stm32n6
+ARCHINCLUDES += -I$(TOPDIR)/arch/arm/src/stm32n6/hardware
