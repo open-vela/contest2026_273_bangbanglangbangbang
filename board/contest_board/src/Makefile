@@ -36,4 +36,8 @@ else ifeq ($(CONFIG_STM32N6_SPI3),y)
 CSRCS += stm32_spi.c
 endif
 
+ifeq ($(CONFIG_STM32N6_DCMIPP),y)
+CSRCS += stm32_dcmipp.c
+endif
+
 include $(TOPDIR)/boards/Board.mk

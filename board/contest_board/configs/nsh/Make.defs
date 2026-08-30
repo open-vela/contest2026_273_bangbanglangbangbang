@@ -1,8 +1,8 @@
 ############################################################################
-# vendor/openvela/boards/contest2026_273_board/configs/nsh/Make.defs
+# boards/arm/stm32n6/contest2026_273_board/configs/nsh/Make.defs
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 ############################################################################
 
-include $(TOPDIR)/vendor/openvela/boards/contest2026_273_board/scripts/Make.defs
+include $(TOPDIR)/boards/arm/stm32n6/contest2026_273_board/scripts/Make.defs
