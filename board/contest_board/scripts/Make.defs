@@ -1,5 +1,5 @@
 ############################################################################
-# vendor/openvela/boards/contest2026_273_board/scripts/Make.defs
+# boards/arm/stm32n6/stm32n647-evb/scripts/Make.defs
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -23,6 +23,10 @@
 include $(TOPDIR)/.config
 include $(TOPDIR)/tools/Config.mk
 include $(TOPDIR)/arch/arm/src/armv8-m/Toolchain.defs
+
+# Add chip-specific include paths for board.h hardware headers
+ARCHINCLUDES += ${INCDIR_PREFIX}$(TOPDIR)$(DELIM)arch$(DELIM)arm$(DELIM)src$(DELIM)stm32n6
+ARCHINCLUDES += ${INCDIR_PREFIX}$(TOPDIR)$(DELIM)arch$(DELIM)arm$(DELIM)src$(DELIM)stm32n6$(DELIM)hardware
 
 LDSCRIPT = ld.script
 ARCHSCRIPT += $(BOARD_DIR)$(DELIM)scripts$(DELIM)$(LDSCRIPT)

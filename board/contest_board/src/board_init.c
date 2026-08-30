@@ -68,15 +68,15 @@ void board_initialize(void)
   /* Initialize SPI chip select pins */
 
 #ifdef CONFIG_STM32N6_SPI1
-  stm32_spi1initialize();
+  stm32_spibus_initialize(1);
 #endif
 
 #ifdef CONFIG_STM32N6_SPI2
-  stm32_spi2initialize();
+  stm32_spibus_initialize(2);
 #endif
 
 #ifdef CONFIG_STM32N6_SPI3
-  stm32_spi3initialize();
+  stm32_spibus_initialize(3);
 #endif
 
   /* Register thermal printer on SPI1 */
