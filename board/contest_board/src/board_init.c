@@ -45,6 +45,10 @@ FAR struct mtd_dev_s *mx25um25645g_initialize(FAR struct qspi_dev_s *qspi);
 extern int board_dcmipp_initialize(void);
 #endif
 
+#ifdef CONFIG_STM32N6_LTDC
+#  include "stm32_ltdc.h"
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -124,6 +128,22 @@ void board_initialize(void)
   /* Initialize DCMIPP camera interface and sensors */
 
   board_dcmipp_initialize();
+#endif
+
+  /* Initialize LTDC LCD display */
+
+#ifdef CONFIG_STM32N6_LTDC
+  {
+    int ret = stm32_ltdcinitialize();
+    if (ret < 0)
+      {
+        syslog(LOG_ERR, "ERROR: Failed to initialize LTDC: %d\n", ret);
+      }
+    else
+      {
+        syslog(LOG_NOTICE, "LTDC LCD display initialized\n");
+      }
+  }
 #endif
 
   /* Initialize AI/TinyML system */
