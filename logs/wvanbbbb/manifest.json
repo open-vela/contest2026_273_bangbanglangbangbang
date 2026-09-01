@@ -98,6 +98,41 @@
       "file_path": "logs/wvanbbbb/2026-09-01/claude-code__d57433fd-c3f3-4ff0-9e2b-155974b07f10.jsonl",
       "collection_mode": "cli",
       "health": "ok"
+    },
+    {
+      "session_id": "37b57456-cdff-41aa-ab91-d77f5ea41335",
+      "tool": "claude-code",
+      "started_at": "2026-09-01T11:53:00.000Z",
+      "last_event_at": "2026-09-01T11:53:00.000Z",
+      "event_count": 1,
+      "raw_event_count": 7,
+      "file_path": "logs/wvanbbbb/2026-09-01/claude-code__37b57456-cdff-41aa-ab91-d77f5ea41335.jsonl",
+      "collection_mode": "cli",
+      "health": "ok"
+    },
+    {
+      "session_id": "7a919b01-4ad4-4880-b23f-3536012b07ef",
+      "tool": "claude-code",
+      "started_at": "2026-09-01T11:53:00.000Z",
+      "last_event_at": "2026-09-01T12:09:00.000Z",
+      "event_count": 134,
+      "raw_event_count": 200,
+      "file_path": "logs/wvanbbbb/2026-09-01/claude-code__7a919b01-4ad4-4880-b23f-3536012b07ef.jsonl",
+      "collection_mode": "cli",
+      "health": "ok",
+      "model": "mimo-v2.5-pro"
+    },
+    {
+      "session_id": "23eec14c-a946-42a3-a070-d1bf631216ce",
+      "tool": "claude-code",
+      "started_at": "2026-09-01T04:40:27.137Z",
+      "last_event_at": "2026-09-01T12:09:00.000Z",
+      "event_count": 340,
+      "raw_event_count": 500,
+      "file_path": "logs/wvanbbbb/2026-09-01/claude-code__23eec14c-a946-42a3-a070-d1bf631216ce.jsonl",
+      "collection_mode": "cli",
+      "health": "ok",
+      "model": "mimo-v2.5-pro"
     }
   ]
 }
