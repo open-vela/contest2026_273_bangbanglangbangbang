@@ -282,19 +282,38 @@
 
 #define RCC_APB5ENR_LTDCEN     (1 << 1)   /* LTDC clock enable */
 
-/* DIVENR register - IC divider enable bits */
+/* IC16CFGR register bits (offset 0x0100) - IC16 clock configuration */
 
-#define RCC_DIVENR_IC16EN      (1 << 15)  /* IC16 divider enable */
+#define RCC_IC16CFGR_IC16SRC_SHIFT   0     /* IC16 source selection [1:0] */
+#define RCC_IC16CFGR_IC16SRC_MASK    (0x3 << RCC_IC16CFGR_IC16SRC_SHIFT)
+#define RCC_IC16CFGR_IC16SRC_HSI     (0x0 << RCC_IC16CFGR_IC16SRC_SHIFT)
+#define RCC_IC16CFGR_IC16SRC_HSE     (0x1 << RCC_IC16CFGR_IC16SRC_SHIFT)
+#define RCC_IC16CFGR_IC16SRC_PLL1    (0x2 << RCC_IC16CFGR_IC16SRC_SHIFT)
+#define RCC_IC16CFGR_IC16SRC_PLL4    (0x3 << RCC_IC16CFGR_IC16SRC_SHIFT)
+#define RCC_IC16CFGR_IC16DIV_SHIFT   4     /* IC16 divider [6:4] */
+#define RCC_IC16CFGR_IC16DIV_MASK    (0x7 << RCC_IC16CFGR_IC16DIV_SHIFT)
 
-/* IC16CFGR register - IC16 clock configuration */
+/* CCIPR5 register bits (offset 0x0154) - LTDC clock source selection */
 
-#define RCC_IC16CFGR_IC16SRC_SHIFT  0     /* Bits 0-3: IC16 source clock */
-#define RCC_IC16CFGR_IC16SRC_MASK   (0xf << RCC_IC16CFGR_IC16SRC_SHIFT)
-#define RCC_IC16CFGR_IC16SRC_PLL1   (0x3 << RCC_IC16CFGR_IC16SRC_SHIFT)
-#define RCC_IC16CFGR_IC16PRES_SHIFT 4     /* Bits 4-15: IC16 prescaler */
-#define RCC_IC16CFGR_IC16PRES_MASK  (0xfff << RCC_IC16CFGR_IC16PRES_SHIFT)
-#define RCC_IC16CFGR_IC16PRES(n)    (((n) - 1) << RCC_IC16CFGR_IC16PRES_SHIFT)
-#define RCC_IC16CFGR_IC16EN         (1 << 17) /* IC16 output enable */
+#define RCC_CCIPR5_LTDCSEL_SHIFT    0     /* LTDC clock source [1:0] */
+#define RCC_CCIPR5_LTDCSEL_MASK     (0x3 << RCC_CCIPR5_LTDCSEL_SHIFT)
+#define RCC_CCIPR5_LTDCSEL_HSI      (0x0 << RCC_CCIPR5_LTDCSEL_SHIFT)
+#define RCC_CCIPR5_LTDCSEL_HSE      (0x1 << RCC_CCIPR5_LTDCSEL_SHIFT)
+#define RCC_CCIPR5_LTDCSEL_PLL4     (0x2 << RCC_CCIPR5_LTDCSEL_SHIFT)
+#define RCC_CCIPR5_LTDCSEL_IC16     (0x3 << RCC_CCIPR5_LTDCSEL_SHIFT)
+
+/* AHB5 peripherals (offset 0x0260) */
+
+#define RCC_AHB5ENR_XSPI1EN    (1 << 0)   /* XSPI1 clock enable */
+#define RCC_AHB5ENR_XSPI2EN    (1 << 1)   /* XSPI2 clock enable */
+#define RCC_AHB5ENR_XSPI3EN    (1 << 2)   /* XSPI3 clock enable */
+#define RCC_AHB5ENR_XSPIMEN    (1 << 3)   /* XSPI IO Manager clock enable */
+
+/* AHB5 Reset register bits (offset 0x0220) */
+
+#define RCC_AHB5RSTR_XSPI1RST  (1 << 0)   /* XSPI1 reset */
+#define RCC_AHB5RSTR_XSPI2RST  (1 << 1)   /* XSPI2 reset */
+#define RCC_AHB5RSTR_XSPI3RST  (1 << 2)   /* XSPI3 reset */
 
 /* BUSENR register - enable all bus domains */
 
@@ -410,6 +429,31 @@ static inline void rcc_enable_apb5_clock(uint32_t mask)
   volatile uint32_t *reg =
     (volatile uint32_t *)(STM32_RCC_BASE + RCC_APB5ENR_OFFSET);
   *reg |= mask;
+}
+
+/* AHB5 clock enable (XSPI) */
+
+static inline void rcc_enable_ahb5_clock(uint32_t mask)
+{
+  volatile uint32_t *reg =
+    (volatile uint32_t *)(STM32_RCC_BASE + RCC_AHB5ENR_OFFSET);
+  *reg |= mask;
+}
+
+/* AHB5 reset functions */
+
+static inline void rcc_set_ahb5_reset(uint32_t mask)
+{
+  volatile uint32_t *reg =
+    (volatile uint32_t *)(STM32_RCC_BASE + RCC_AHB5RSTR_OFFSET);
+  *reg |= mask;
+}
+
+static inline void rcc_clear_ahb5_reset(uint32_t mask)
+{
+  volatile uint32_t *reg =
+    (volatile uint32_t *)(STM32_RCC_BASE + RCC_AHB5RSTR_OFFSET);
+  *reg &= ~mask;
 }
 
 #endif /* __ARCH_ARM_SRC_STM32N6_HARDWARE_STM32_RCC_H */
