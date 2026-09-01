@@ -1,6 +1,6 @@
 # 编译日志 - Contest 2026 Team #273
 
-> 日期: 2026-08-31
+> 日期: 2026-09-01
 > 平台: STM32N647-EVB (Cortex-M55, ARMv8-M)
 > 工具链: arm-none-eabi-gcc 10.3.1
 
@@ -10,7 +10,7 @@
 |------|------|
 | 目标板 | contest2026_273_board:nsh |
 | 固件大小 | nuttx.bin 274K / nuttx.hex 768K |
-| 编译结果 | **成功** |
+| 编译结果 | **成功 (0 warnings, 0 errors)** |
 
 ### 包含的程序
 
@@ -92,7 +92,9 @@ chip/stm32_dcmipp_imgdata.c:249:14: warning: format '%d' expects argument of typ
 
 **原因:** `%d` 格式说明符用于 `uint32_t` 类型，应使用 `%lu` 或 `PRIu32`。
 
-**处理:** 仅为警告，不影响编译。
+**修复:** 改用 `%lu` 并强制转换为 `(unsigned long)`。
+
+**状态:** ✅ 已修复 (2026-09-01)
 
 ### 错误 6: DCMIPP board 级隐式函数声明
 
@@ -103,7 +105,27 @@ stm32_dcmipp.c:138:3: warning: implicit declaration of function 'stm32_dcmipp_im
 
 **原因:** board 级 DCMIPP 初始化调用了 `stm32_dcmipp_imgdata_register`，但该函数的头文件声明未被包含。
 
-**处理:** 仅为警告，链接时能找到符号。
+**修复:** 在 `stm32_dcmipp.h` 中添加函数声明。
+
+**状态:** ✅ 已修复 (2026-09-01)
+
+### 错误 7: 未使用的函数和变量警告
+
+**现象:**
+```
+chip/stm32_clockconfig.c:80:12: warning: 'wait_for_flag' defined but not used
+chip/stm32_xspi.c:367:12: warning: unused variable 'regval'
+chip/stm32_xspi.c:810:12: warning: 'xspi_wait_write_complete' defined but not used
+chip/stm32_clockconfig.c:90:22: warning: unused variable 'pwr_cr1'
+```
+
+**原因:** 代码中定义了未使用的函数和变量。
+
+**修复:**
+- 删除 `stm32_clockconfig.c` 中未使用的 `wait_for_flag` 函数和 `pwr_cr1` 变量
+- 删除 `stm32_xspi.c` 中未使用的 `regval` 变量和 `xspi_wait_write_complete` 函数
+
+**状态:** ✅ 已修复 (2026-09-01)
 
 ---
 
@@ -113,7 +135,6 @@ stm32_dcmipp.c:138:3: warning: implicit declaration of function 'stm32_dcmipp_im
 |------|--------|------|
 | LTDC 驱动重写 | 高 | 需要适配正确的 RCC 寄存器和 GPIO API |
 | AI 框架集成 | 中 | drivers/ai/ 目录的 Kconfig 未接入构建系统 |
-| DCMIPP imgdata 警告 | 低 | 修正格式字符串 |
 | fb 帧缓冲示例 | 中 | 依赖 LTDC 完成后才能启用 |
 
 ---
