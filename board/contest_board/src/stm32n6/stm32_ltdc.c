@@ -149,14 +149,10 @@ static int ltdc_getvideoinfo(struct fb_vtable_s *vplane,
                               struct fb_videoinfo_s *vinfo);
 static int ltdc_getplaneinfo(struct fb_vtable_s *vplane, int planeno,
                               struct fb_planeinfo_s *pinfo);
-static ssize_t ltdc_read(struct fb_vtable_s *vplane, uint8_t *buffer,
-                          size_t buflen);
-static ssize_t ltdc_write(struct fb_vtable_s *vplane,
-                           const uint8_t *buffer, size_t buflen);
+#ifdef CONFIG_FB_HWCURSOR
 static int ltdc_setcursor(struct fb_vtable_s *vplane,
-                           struct fb_cursorpos_s *pos);
-static int ltdc_setcursorshape(struct fb_vtable_s *vplane,
-                                struct fb_cursorshape_s *shape);
+                           struct fb_setcursor_s *settings);
+#endif
 
 /****************************************************************************
  * Private Functions
@@ -290,47 +286,48 @@ static void ltdc_configure_pins(void)
 
   /* Configure LTDC pins - 20 pins total (19x AF14 + 1x AF10 for VSYNC)
    * Reference: stm32n6xx_hal_msp.c:134-234
+   * stm32_gpio_config(port, pin, mode, otype, speed, pupd, af)
    */
 
   /* Port A pins (AF14) */
 
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN0  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* G3 */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN1  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* G2 */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN2  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* B7 */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN5  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* CLK */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN8  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* B6 */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN9  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* B5 */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN10 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* B4 */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN11 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* B3 */
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN15 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* R5 */
+  stm32_gpio_config(GPIO_PORTA, 0,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* G3 */
+  stm32_gpio_config(GPIO_PORTA, 1,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* G2 */
+  stm32_gpio_config(GPIO_PORTA, 2,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* B7 */
+  stm32_gpio_config(GPIO_PORTA, 5,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* CLK */
+  stm32_gpio_config(GPIO_PORTA, 8,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* B6 */
+  stm32_gpio_config(GPIO_PORTA, 9,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* B5 */
+  stm32_gpio_config(GPIO_PORTA, 10, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* B4 */
+  stm32_gpio_config(GPIO_PORTA, 11, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* B3 */
+  stm32_gpio_config(GPIO_PORTA, 15, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* R5 */
 
   /* Port B pins (AF14) */
 
-  stm32_gpio_config(GPIO_PORTB | GPIO_PIN4  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* R3 */
-  stm32_gpio_config(GPIO_PORTB | GPIO_PIN10 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* G7 */
-  stm32_gpio_config(GPIO_PORTB | GPIO_PIN11 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* G6 */
-  stm32_gpio_config(GPIO_PORTB | GPIO_PIN12 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* G5 */
-  stm32_gpio_config(GPIO_PORTB | GPIO_PIN15 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* G4 */
+  stm32_gpio_config(GPIO_PORTB, 4,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* R3 */
+  stm32_gpio_config(GPIO_PORTB, 10, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* G7 */
+  stm32_gpio_config(GPIO_PORTB, 11, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* G6 */
+  stm32_gpio_config(GPIO_PORTB, 12, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* G5 */
+  stm32_gpio_config(GPIO_PORTB, 15, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* G4 */
 
   /* Port F pins (AF14) */
 
-  stm32_gpio_config(GPIO_PORTF | GPIO_PIN8  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* R6 */
-  stm32_gpio_config(GPIO_PORTF | GPIO_PIN9  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* HSYNC */
+  stm32_gpio_config(GPIO_PORTF, 8,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* R6 */
+  stm32_gpio_config(GPIO_PORTF, 9,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* HSYNC */
 
   /* Port G pins - VSYNC uses AF10! */
 
-  stm32_gpio_config(GPIO_PORTG | GPIO_PIN0  | GPIO_AF10 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* VSYNC (AF10) */
-  stm32_gpio_config(GPIO_PORTG | GPIO_PIN9  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* R7 */
-  stm32_gpio_config(GPIO_PORTG | GPIO_PIN13 | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* DE */
+  stm32_gpio_config(GPIO_PORTG, 0,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF10);  /* VSYNC (AF10) */
+  stm32_gpio_config(GPIO_PORTG, 9,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* R7 */
+  stm32_gpio_config(GPIO_PORTG, 13, GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* DE */
 
   /* Port H pins (AF14) */
 
-  stm32_gpio_config(GPIO_PORTH | GPIO_PIN4  | GPIO_AF14 | GPIO_PUSHPULL | GPIO_SPEED_HIGH);  /* R4 */
+  stm32_gpio_config(GPIO_PORTH, 4,  GPIO_MODER_AF, GPIO_OTYPER_PP, GPIO_OSPEEDR_HIGH, GPIO_PUPDR_NONE, GPIO_AF14);  /* R4 */
 
   /* Backlight pin PA3 - GPIO output, initially off */
 
-  stm32_gpio_config(GPIO_PORTA | GPIO_PIN3 | GPIO_OUTPUT | GPIO_PUSHPULL | GPIO_SPEED_LOW);
-  stm32_gpio_write(GPIO_PORTA | GPIO_PIN3, false);
+  stm32_gpio_config(GPIO_PORTA, 3, GPIO_MODER_OUTPUT, GPIO_OTYPER_PP, GPIO_OSPEEDR_LOW, GPIO_PUPDR_NONE, 0);
+  stm32_gpio_write(GPIO_PORTA, 3, false);
 
   lcdinfo("LTDC pins configured\n");
 }
@@ -491,37 +488,15 @@ static int ltdc_getplaneinfo(struct fb_vtable_s *vplane, int planeno,
   return OK;
 }
 
-static ssize_t ltdc_read(struct fb_vtable_s *vplane, uint8_t *buffer,
-                          size_t buflen)
-{
-  /* Not supported */
-
-  return -ENOSYS;
-}
-
-static ssize_t ltdc_write(struct fb_vtable_s *vplane,
-                           const uint8_t *buffer, size_t buflen)
-{
-  /* Not supported */
-
-  return -ENOSYS;
-}
-
+#ifdef CONFIG_FB_HWCURSOR
 static int ltdc_setcursor(struct fb_vtable_s *vplane,
-                           struct fb_cursorpos_s *pos)
+                           struct fb_setcursor_s *settings)
 {
   /* Not supported */
 
   return -ENOSYS;
 }
-
-static int ltdc_setcursorshape(struct fb_vtable_s *vplane,
-                                struct fb_cursorshape_s *shape)
-{
-  /* Not supported */
-
-  return -ENOSYS;
-}
+#endif
 
 /****************************************************************************
  * Public Functions
@@ -558,10 +533,9 @@ int stm32_ltdcinitialize(void)
 
   priv->vtable.getvideoinfo = ltdc_getvideoinfo;
   priv->vtable.getplaneinfo = ltdc_getplaneinfo;
-  priv->vtable.read = ltdc_read;
-  priv->vtable.write = ltdc_write;
+#ifdef CONFIG_FB_HWCURSOR
   priv->vtable.setcursor = ltdc_setcursor;
-  priv->vtable.setcursorshape = ltdc_setcursorshape;
+#endif
 
   /* Configure LTDC clocks */
 
@@ -595,7 +569,7 @@ int stm32_ltdcinitialize(void)
 
   /* Turn on backlight (PA3) */
 
-  stm32_gpio_write(GPIO_PORTA | GPIO_PIN3, true);
+  stm32_gpio_write(GPIO_PORTA, 3, true);
 
   lcdinfo("LTDC initialized successfully\n");
 
