@@ -133,9 +133,35 @@ chip/stm32_clockconfig.c:90:22: warning: unused variable 'pwr_cr1'
 
 | 问题 | 优先级 | 说明 |
 |------|--------|------|
-| LTDC 驱动重写 | 高 | 需要适配正确的 RCC 寄存器和 GPIO API |
+| LTDC 驱动测试 | 高 | 需要在开发板上测试 LCD 显示 |
 | AI 框架集成 | 中 | drivers/ai/ 目录的 Kconfig 未接入构建系统 |
 | fb 帧缓冲示例 | 中 | 依赖 LTDC 完成后才能启用 |
+
+---
+
+## 4. LTDC 驱动修复 (2026-09-03)
+
+### 修复内容
+
+基于 STM32N6570-DK 官方示例修复 LTDC 驱动:
+
+**1. 时钟配置修复:**
+- ❌ 旧: PLL1 -> IC16 (divider 18) -> LTDC (33MHz)
+- ✅ 新: PLL4 -> IC16 (divider 64) -> LTDC (25MHz)
+
+**2. GPIO 引脚映射修复:**
+- ❌ 旧: 使用了不存在的引脚映射 (PA5=CLK, PA9=B5, PA10=B4, PA11=B3, PG0=VSYNC, PG9=R7, PB10=G7)
+- ✅ 新: 严格按照官方示例 (PB13=CLK, PH6=B5, PH3=B4, PG6=B3, PE11=VSYNC, PD8=R7, PG8=G7)
+
+**3. PLL4 配置:**
+- 在 `stm32_clockconfig.c` 中添加 PLL4 初始化
+- PLL4 源: HSI (64MHz)
+- PLL4 倍频: * 25 = 1600MHz
+- IC16 分频: / 64 = 25MHz (像素时钟)
+
+**参考文件:**
+- `/home/vant/STM32CubeN6/Projects/STM32N6570-DK/Examples/LTDC/LTDC_Horizontal_Mirroring/FSBL/Src/stm32n6xx_hal_msp.c`
+- `/home/vant/STM32CubeN6/Projects/STM32N6570-DK/Examples/LTDC/LTDC_Horizontal_Mirroring/FSBL/Src/main.c`
 
 ---
 
