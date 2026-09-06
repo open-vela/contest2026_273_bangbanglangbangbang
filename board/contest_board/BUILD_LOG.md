@@ -9,7 +9,7 @@
 | 项目 | 状态 |
 |------|------|
 | 目标板 | contest2026_273_board:nsh |
-| 固件大小 | nuttx.bin 280K / nuttx.hex 785K |
+| 固件大小 | nuttx.bin 284K / nuttx.hex 801K |
 | 编译结果 | **成功 (0 warnings, 0 errors)** |
 
 ### 包含的程序
@@ -127,6 +127,55 @@ chip/stm32_clockconfig.c:90:22: warning: unused variable 'pwr_cr1'
 - 删除 `stm32_xspi.c` 中未使用的 `regval` 变量和 `xspi_wait_write_complete` 函数
 
 **状态:** ✅ 已修复 (2026-09-01)
+
+### 错误 8: IC16 分频器寄存器定义错误 (2026-09-06)
+
+**现象:**
+LTDC 像素时钟配置错误，实际频率 200MHz 而非预期 25MHz。
+
+**原因:**
+RCC 头文件中 IC16CFGR 寄存器位域定义错误：
+- 旧定义: `IC16DIV_SHIFT=4`, `IC16DIV_MASK=0x7` (3位，最大分频8)
+- 实际: `IC16DIV_SHIFT=16`, `IC16DIV_MASK=0xFF` (8位，最大分频256)
+
+代码写入 `(64-1)=63` 被截断为 `63 & 0x7 = 7`，实际分频器为 8。
+
+**修复:**
+参考 STM32N6xx CMSIS 头文件 (stm32n657xx.h)，修正 IC16CFGR 寄存器位域定义：
+- `IC16SEL`: bits [29:28] - 源选择
+- `IC16INT`: bits [23:16] - 整数分频因子 (8位)
+
+**状态:** ✅ 已修复 (2026-09-06)
+
+### 错误 9: ISR 中调用 gettimeofday (2026-09-06)
+
+**现象:**
+DCMIPP 帧完成回调在 ISR 上下文中调用 `gettimeofday()`，可能导致死锁。
+
+**原因:**
+`stm32_dcmipp_irq_handler` (ISR) → `g_pipe_callback[pipe]` → `dcmipp_frame_done` → `gettimeofday()`
+
+`gettimeofday()` 是 libc 函数，内部可能获取锁或访问非中断安全的数据结构。
+
+**修复:**
+使用 NuttX 工作队列延迟处理帧完成回调：
+1. ISR 中仅调用 `work_queue(HPWORK, ...)` 调度延迟工作
+2. 工作队列处理函数中调用 `gettimeofday()` 和回调
+
+**状态:** ✅ 已修复 (2026-09-06)
+
+### 错误 10: LTDC GPIO 速度设置过低 (2026-09-06)
+
+**现象:**
+LTDC 显示花屏或无显示。
+
+**原因:**
+GPIO 速度从 `GPIO_OSPEEDR_HIGH` (50-100MHz) 改为 `GPIO_OSPEEDR_LOW` (~2-8MHz)。25MHz 像素时钟需要至少 `GPIO_OSPEEDR_MED` (25-50MHz)。
+
+**修复:**
+将所有 LTDC 数据/时钟引脚恢复为 `GPIO_OSPEEDR_HIGH`。
+
+**状态:** ✅ 已修复 (2026-09-06)
 
 ---
 
