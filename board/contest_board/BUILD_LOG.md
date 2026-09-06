@@ -1,6 +1,6 @@
 # 编译日志 - Contest 2026 Team #273
 
-> 日期: 2026-09-01
+> 日期: 2026-09-06 (更新)
 > 平台: STM32N647-EVB (Cortex-M55, ARMv8-M)
 > 工具链: arm-none-eabi-gcc 10.3.1
 
@@ -9,7 +9,7 @@
 | 项目 | 状态 |
 |------|------|
 | 目标板 | contest2026_273_board:nsh |
-| 固件大小 | nuttx.bin 274K / nuttx.hex 768K |
+| 固件大小 | nuttx.bin 280K / nuttx.hex 785K |
 | 编译结果 | **成功 (0 warnings, 0 errors)** |
 
 ### 包含的程序
@@ -22,7 +22,8 @@
 
 ### 启用的硬件驱动
 
-- USART1 (115200 8N1 串口控制台)
+- USART1 (115200 8N1 串口控制台, PA9/PA10)
+- USART2 (115200 8N1 调试日志, PA2/PA3) — 2026-09-06 新增
 - SPI1 (热敏打印机接口)
 - I2C1 (摄像头 SCCB 控制)
 - DCMIPP (摄像头管道，支持 IMX335/OV5640)
@@ -139,7 +140,37 @@ chip/stm32_clockconfig.c:90:22: warning: unused variable 'pwr_cr1'
 
 ---
 
-## 4. LTDC 驱动修复 (2026-09-03)
+## 4. 双串口支持 (2026-09-06)
+
+### 改动内容
+
+新增 USART2 作为独立调试日志串口，将 printf/syslog 与 NSH 控制台分离：
+
+**1. 新增 USART2 驱动支持:**
+- Kconfig: 新增 `STM32N6_USART2` 及相关配置项
+- GPIO: PA2 (TX, AF7), PA3 (RX, AF7) 初始化
+- 串口注册: `/dev/ttyS1` (UART2)
+
+**2. syslog 分离:**
+- ❌ 旧: `CONFIG_SYSLOG_CHAR_CONSOLE=y` (syslog 走控制台)
+- ✅ 新: `CONFIG_SYSLOG_CHAR=y` + `CONFIG_SYSLOG_DEVPATH="/dev/ttyS1"` (syslog 走 USART2)
+
+**3. 串口分配:**
+
+| 串口 | 引脚 | 用途 | 设备节点 |
+|------|------|------|----------|
+| USART1 | PA9/PA10 | NSH 控制台 | `/dev/console` |
+| USART2 | PA2/PA3 | printf/syslog 调试日志 | `/dev/ttyS1` |
+
+**修改的文件:**
+- `src/stm32n6/hardware/stm32_gpio.h` — 新增 `GPIO_AF7_USART2/USART3`
+- `src/stm32n6/stm32_gpio.c` — 新增 USART2 GPIO 初始化
+- `src/stm32n6/Kconfig` — 新增 USART2 配置项
+- `configs/nsh/defconfig` — 启用 USART2, 修改 syslog 配置
+
+---
+
+## 5. LTDC 驱动修复 (2026-09-03)
 
 ### 修复内容
 
@@ -165,19 +196,38 @@ chip/stm32_clockconfig.c:90:22: warning: unused variable 'pwr_cr1'
 
 ---
 
-## 4. 编译命令
+## 7. 编译命令
 
 ```bash
 cd /home/vant/nuttx
 make distclean
 ./tools/configure.sh contest2026_273_board:nsh
-make -j2
+make -j$(nproc)
 ```
 
-## 5. 烧录文件
+## 8. 烧录方式
 
-固件已拷贝到共享目录:
-- `\\vmware-host\Shared Folders\n647\nuttx_contest_273.bin` (274K)
-- `\\vmware-host\Shared Folders\n647\nuttx_contest_273.hex` (768K)
+### 方式 1: st-flash (SWD, 需安装 stlink-tools)
+```bash
+sudo apt install stlink-tools
+st-flash write nuttx.bin 0x08000000
+```
 
-使用 STM32CubeProgrammer 烧录到地址 `0x08000000`。
+### 方式 2: STM32CubeProgrammer (Windows)
+```cmd
+STM32_Programmer_CLI -c port=SWD freq=4000 -w nuttx.bin 0x08000000 -v -rst
+```
+
+### 方式 3: 串口 bootloader (需进入 BOOT0 模式)
+```bash
+sudo apt install stm32flash
+# 设置 BOOT0=HIGH, 复位进入 bootloader
+stm32flash -w nuttx.bin -v -g 0x08000000 /dev/ttyUSB0
+```
+
+## 9. 固件输出
+
+- `nuttx.bin` (280K)
+- `nuttx.hex` (785K)
+
+烧录到 Flash 地址 `0x08000000`。
